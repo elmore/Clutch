@@ -14,7 +14,7 @@ namespace Clutch
             _rootUrl = rootUrl;
         }
 
-        public async Task<T> Get<T>()
+        public async Task<T> Get<T>(object id)
         {
             using (var client = new HttpClient())
             {
@@ -24,7 +24,9 @@ namespace Clutch
 
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                HttpResponseMessage response = await client.GetAsync("rooms/1");
+                string url = string.Format("{0}s/{1}", typeof(T).Name, id);
+
+                HttpResponseMessage response = await client.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
                 {

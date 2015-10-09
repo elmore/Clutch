@@ -12,7 +12,7 @@ namespace Clutch.Tests
         [Test]
         public void RetrievesModelFromRoot()
         {
-            Room room = new FluentClient("http://local.property.erm-api.com/v1/").Get<Room>().Result;
+            Room room = new FluentClient("http://local.property.erm-api.com/v1/").Get<Room>(1).Result;
 
             Assert.IsNotNull(room);
 
