@@ -93,10 +93,8 @@ namespace Clutch
                 }
                 else
                 {
-                    
+                    result.Error = await response.Content.ReadAsAsync<TError>();
                 }
-
-                // add in message
 
                 result.StatusCode = response.StatusCode;
 

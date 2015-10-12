@@ -75,8 +75,12 @@ namespace Clutch.Tests
             FluentResponse<User, Error> room = client.Get<User>("forceerror").Result;
 
             Assert.IsNotNull(room);
+
             Assert.IsNull(room.Entity);
+
             Assert.AreEqual(401, (int)room.StatusCode);
+
+            Assert.AreEqual("Authenticate", room.Error.Message);
         }
 
 
