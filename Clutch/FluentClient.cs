@@ -41,7 +41,7 @@ namespace Clutch
             return await new CurriedRequest(_client).Get<T>(id);
         }
 
-        public async Task<bool> Post<T>(object model)
+        public async Task<T> Post<T>(T model)
         {
             return await new CurriedRequest(_client).Post<T>(model);
         }
@@ -59,12 +59,17 @@ namespace Clutch
                 _rootUrl = rootUrl;
             }
 
-            public async Task<bool> PostAsJsonAsync(string url, object model)
+            public async Task<T> PostAsJsonAsync<T>(string url, object model)
             {
                 using (var client = GetClient())
                 using (HttpResponseMessage response = await client.PostAsJsonAsync(url, model))
                 {
-                    return response.IsSuccessStatusCode;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await response.Content.ReadAsAsync<T>();
+                    }
+
+                    return default(T);
                 }
             }
 
@@ -124,11 +129,11 @@ namespace Clutch
                 return await _client.GetAsync<T>(_path.ToString());
             }
 
-            public async Task<bool> Post<T>(object model)
+            public async Task<T> Post<T>(T model)
             {
                 _path.Chain(new PluralEntity<T>());
 
-                return await _client.PostAsJsonAsync(_path.ToString(), model);
+                return await _client.PostAsJsonAsync<T>(_path.ToString(), model);
             }
         }
 

@@ -28,7 +28,6 @@ namespace Clutch.Tests
         [Test]
         public void CreatesModel()
         {
-
             var model = new User
             {
                 GenderId = 0,
@@ -44,11 +43,11 @@ namespace Clutch.Tests
                 Ip = "",
             };
 
-            bool success = new FluentClient("http://local.property.erm-api.com/v1/").Post<User>(model).Result;
+            User result = new FluentClient("http://local.property.erm-api.com/v1/").Post<User>(model).Result;
 
-            Assert.IsTrue(success);
+            Assert.IsNotNull(result);
 
-            Assert.IsNotNullOrEmpty(model.Id);
+            Assert.IsNotNullOrEmpty(result.Id);
         }
 
         [Test]
@@ -66,9 +65,13 @@ namespace Clutch.Tests
         }
 
         [Test]
-        public void HandlesFailure()
+        public void HandlesNetworkFailure()
         {
-            // may need to wrap the returned models in some kind of response object
+            var client = new FluentClient("http://local.property.erm-api.com/");
+
+            User room = client.Find<Room>(1).Find<Room>(1).Find<Room>(1).Find<Room>(1).Get<User>(12).Result;
+
+            Assert.IsNull(room);
         }
 
 
