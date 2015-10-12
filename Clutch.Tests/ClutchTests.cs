@@ -54,8 +54,15 @@ namespace Clutch.Tests
         [Test]
         public void CanUseClientForDifferentCalls()
         {
-            // atm state is persisted between chained calls so it wont work if you use the same client for different call.
-            // should build up a curried client between calls that only lives for that request
+            var client = new FluentClient("http://local.property.erm-api.com/v1/");
+
+            Room room1 = client.Get<Room>(1).Result;
+
+            Room room2 = client.Get<Room>(1).Result;
+
+            Assert.IsNotNull(room1);
+
+            Assert.IsNotNull(room2);
         }
 
         [Test]

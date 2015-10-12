@@ -19,36 +19,125 @@ namespace Clutch
     ///     var room = new FluentClient("http://my.api.com/v1/").Find<User>(1).Get<Room>("123").Result;
     /// 
     /// </summary>
-    public class FluentClient
+
+    public interface IFluentRequest
     {
-        private readonly string _rootUrl;
-        private readonly Entity _path = new Entity();
+        IFluentRequest Find<T>(object id);
+        Task<T> Get<T>(object id);
+        Task<bool> Post<T>(object model);
+    }
+
+    public class FluentClient : IFluentRequest
+    {
+        private readonly HttpClientWrapper _client;
 
         public FluentClient(string rootUrl)
         {
-            _rootUrl = rootUrl;
+            _client = new HttpClientWrapper(rootUrl);
         }
 
-        public FluentClient Find<T>(object id)
+        public IFluentRequest Find<T>(object id)
         {
-            _path.Chain(new PluralEntity<T>()).Chain(id);
-
-            return this;
+            return new CurriedRequest(_client).Find<T>(id);
         }
 
         public async Task<T> Get<T>(object id)
         {
-            _path.Chain(new PluralEntity<T>()).Chain(id);
-
-            return await new HttpClientWrapper(_rootUrl).GetAsync<T>(_path.ToString());
+            return await new CurriedRequest(_client).Get<T>(id);
         }
 
         public async Task<bool> Post<T>(object model)
         {
-            _path.Chain(new PluralEntity<T>());
-
-            return await new HttpClientWrapper(_rootUrl).PostAsJsonAsync(_path.ToString(), model);
+            return await new CurriedRequest(_client).Post<T>(model);
         }
+
+
+
+        internal class HttpClientWrapper
+        {
+            private readonly string _rootUrl;
+
+            internal HttpClientWrapper(string rootUrl)
+            {
+                _rootUrl = rootUrl;
+            }
+
+            public async Task<bool> PostAsJsonAsync(string url, object model)
+            {
+                using (var client = GetClient())
+                using (HttpResponseMessage response = await client.PostAsJsonAsync(url, model))
+                {
+                    return response.IsSuccessStatusCode;
+                }
+            }
+
+            public async Task<T> GetAsync<T>(string url)
+            {
+                using (var client = GetClient())
+                using (HttpResponseMessage response = await client.GetAsync(url))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await response.Content.ReadAsAsync<T>();
+                    }
+
+                    return default(T);
+                }
+            }
+
+            private HttpClient GetClient()
+            {
+                var client = new HttpClient();
+
+                client.BaseAddress = new Uri(_rootUrl);
+
+                client.DefaultRequestHeaders.Accept.Clear();
+
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                return client;
+            }
+        }
+
+
+
+        public class CurriedRequest : IFluentRequest
+        {
+            private readonly HttpClientWrapper _client;
+            private readonly Entity _path;
+
+            internal CurriedRequest(HttpClientWrapper client)
+            {
+                _client = client;
+                _path = new Entity();
+            }
+
+            public IFluentRequest Find<T>(object id)
+            {
+                _path.Chain(new PluralEntity<T>()).Chain(id);
+
+                return this;
+            }
+
+            public async Task<T> Get<T>(object id)
+            {
+                _path.Chain(new PluralEntity<T>()).Chain(id);
+
+                return await _client.GetAsync<T>(_path.ToString());
+            }
+
+            public async Task<bool> Post<T>(object model)
+            {
+                _path.Chain(new PluralEntity<T>());
+
+                return await _client.PostAsJsonAsync(_path.ToString(), model);
+            }
+        }
+
+
+
+
+
 
         private class Entity
         {
@@ -99,50 +188,9 @@ namespace Clutch
             { }
         }
 
-        private class HttpClientWrapper
-        {
-            private readonly string _rootUrl;
 
-            public HttpClientWrapper(string rootUrl)
-            {
-                _rootUrl = rootUrl;
-            }
 
-            public async Task<bool> PostAsJsonAsync(string url, object model)
-            {
-                using (var client = GetClient())
-                using (HttpResponseMessage response = await client.PostAsJsonAsync(url, model))
-                {
-                    return response.IsSuccessStatusCode;
-                }
-            }
 
-            public async Task<T> GetAsync<T>(string url)
-            {
-                using (var client = GetClient())
-                using(HttpResponseMessage response = await client.GetAsync(url))
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        return await response.Content.ReadAsAsync<T>();
-                    }
 
-                    return default(T);
-                }
-            }
-
-            private HttpClient GetClient()
-            {
-                var client = new HttpClient();
-
-                client.BaseAddress = new Uri(_rootUrl);
-
-                client.DefaultRequestHeaders.Accept.Clear();
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                return client;
-            }
-        }
     }
 }
