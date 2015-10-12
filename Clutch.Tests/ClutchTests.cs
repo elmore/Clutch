@@ -24,6 +24,47 @@ namespace Clutch.Tests
         {
             var room = new FluentClient("http://local.property.erm-api.com/v1/").Find<User>(1).Get<Room>("h123123");
         }
+
+        [Test]
+        public void CreatesModel()
+        {
+
+            var model = new User
+            {
+                GenderId = 0,
+                OccupationId = 0,
+                Firstname = "",
+                Lastname = "",
+                Email = "",
+                Phone = "",
+                ShowPhone = false,
+                LanguageCode = 1,
+                Age = 18,
+                AffiliateCode  = "",
+                Ip = "",
+            };
+
+            bool success = new FluentClient("http://local.property.erm-api.com/v1/").Post<User>(model).Result;
+
+            Assert.IsTrue(success);
+
+            Assert.IsNotNullOrEmpty(model.Id);
+        }
+
+        [Test]
+        public void CanUseClientForDifferentCalls()
+        {
+            // atm state is persisted between chained calls so it wont work if you use the same client for different call.
+            // should build up a curried client between calls that only lives for that request
+        }
+
+        [Test]
+        public void HandlesFailure()
+        {
+            // may need to wrap the returned models in some kind of response object
+        }
+
+
     }
 
     public class User

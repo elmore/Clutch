@@ -29,6 +29,13 @@ namespace Clutch
             _rootUrl = rootUrl;
         }
 
+        public FluentClient Find<T>(object id)
+        {
+            _path.Chain(new PluralEntity<T>()).Chain(id);
+
+            return this;
+        }
+
         public async Task<T> Get<T>(object id)
         {
             _path.Chain(new PluralEntity<T>()).Chain(id);
@@ -36,11 +43,11 @@ namespace Clutch
             return await new HttpClientWrapper(_rootUrl).GetAsync<T>(_path.ToString());
         }
 
-        public FluentClient Find<T>(object id)
+        public async Task<bool> Post<T>(object model)
         {
-            _path.Chain(new PluralEntity<T>()).Chain(id);
+            _path.Chain(new PluralEntity<T>());
 
-            return this;
+            return await new HttpClientWrapper(_rootUrl).PostAsJsonAsync(_path.ToString(), model);
         }
 
         private class Entity
@@ -101,18 +108,20 @@ namespace Clutch
                 _rootUrl = rootUrl;
             }
 
+            public async Task<bool> PostAsJsonAsync(string url, object model)
+            {
+                using (var client = GetClient())
+                using (HttpResponseMessage response = await client.PostAsJsonAsync(url, model))
+                {
+                    return response.IsSuccessStatusCode;
+                }
+            }
+
             public async Task<T> GetAsync<T>(string url)
             {
-                using (var client = new HttpClient())
+                using (var client = GetClient())
+                using(HttpResponseMessage response = await client.GetAsync(url))
                 {
-                    client.BaseAddress = new Uri(_rootUrl);
-
-                    client.DefaultRequestHeaders.Accept.Clear();
-
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                    HttpResponseMessage response = await client.GetAsync(url);
-
                     if (response.IsSuccessStatusCode)
                     {
                         return await response.Content.ReadAsAsync<T>();
@@ -120,6 +129,19 @@ namespace Clutch
 
                     return default(T);
                 }
+            }
+
+            private HttpClient GetClient()
+            {
+                var client = new HttpClient();
+
+                client.BaseAddress = new Uri(_rootUrl);
+
+                client.DefaultRequestHeaders.Accept.Clear();
+
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                return client;
             }
         }
     }
