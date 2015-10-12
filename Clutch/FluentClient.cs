@@ -5,6 +5,20 @@ using System.Threading.Tasks;
 
 namespace Clutch
 {
+    /// <summary>
+    /// Provides a configurationless (convention based) client for rest APIs
+    /// 
+    /// =USAGE=
+    /// 
+    /// given a resource at 
+    ///     
+    ///     http://my.api.com/v1/users/1/rooms/123
+    /// 
+    /// we can retrieve a populated model with:
+    /// 
+    ///     var room = new FluentClient("http://my.api.com/v1/").Find<User>(1).Get<Room>("123").Result;
+    /// 
+    /// </summary>
     public class FluentClient
     {
         private readonly string _rootUrl;
