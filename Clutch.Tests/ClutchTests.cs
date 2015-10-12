@@ -20,6 +20,32 @@ namespace Clutch.Tests
 
             Assert.AreEqual("London", room.City);
         }
+
+        [Test]
+        public void RetreivesSubModel()
+        {
+            Room room = new FluentClient("http://local.property.erm-api.com/v1/").Find<User>(1).Get<Room>("h123123").Result;
+
+        }
+    }
+
+    public class User
+    {
+        public string Id { get; set; }
+
+        public int GenderId { get; set; }
+        public int OccupationId { get; set; }
+
+        public string Firstname { get; set; }
+        public string Lastname { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public bool ShowPhone { get; set; }
+        public int LanguageCode { get; set; }
+        public int Age { get; set; }
+        public string AffiliateCode { get; set; }
+
+        public string Ip { get; set; }
     }
 
     public class Room
