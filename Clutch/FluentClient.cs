@@ -5,28 +5,23 @@ using System.Threading.Tasks;
 
 namespace Clutch
 {
-    /// <summary>
     /// Provides a configurationless (convention based) client for rest APIs
     /// 
-    /// =USAGE=
-    /// 
-    /// given a resource at 
+    /// Given a resource at:
     ///     
     ///     http://my.api.com/v1/users/1/rooms/123
     /// 
     /// we can retrieve a populated model with:
     /// 
     ///     var room = new FluentClient("http://my.api.com/v1/").Find<User>(1).Get<Room>("123").Result;
-    /// 
+
+    
+
+
+    /// <summary>
+    /// entry point. implements the interface but is just proxying to the CurriedRequest
+    /// and handling persistent state
     /// </summary>
-
-    public interface IFluentRequest
-    {
-        IFluentRequest Find<T>(object id);
-        Task<T> Get<T>(object id);
-        Task<bool> Post<T>(object model);
-    }
-
     public class FluentClient : IFluentRequest
     {
         private readonly HttpClientWrapper _client;
@@ -51,8 +46,10 @@ namespace Clutch
             return await new CurriedRequest(_client).Post<T>(model);
         }
 
-
-
+        /// <summary>
+        /// wraps the .net HttpClient to remove some boilerplate code. attempts to 
+        /// match the api of the HttpClient class
+        /// </summary>
         internal class HttpClientWrapper
         {
             private readonly string _rootUrl;
@@ -99,8 +96,9 @@ namespace Clutch
             }
         }
 
-
-
+        /// <summary>
+        /// component that can chain together to build up requests to nested resources
+        /// </summary>
         public class CurriedRequest : IFluentRequest
         {
             private readonly HttpClientWrapper _client;
@@ -134,11 +132,9 @@ namespace Clutch
             }
         }
 
-
-
-
-
-
+        /// <summary>
+        /// represents a url fragment. chains together nicely to create well formed paths
+        /// </summary>
         private class Entity
         {
             private Entity _chainLink = null;
@@ -181,16 +177,14 @@ namespace Clutch
             }
         }
 
+        /// <summary>
+        /// responsible for intuiting the name of the class and pluralising it
+        /// </summary>
         private class PluralEntity<T> : Entity
         {
             public PluralEntity(string postfix = "s")
                 : base(string.Format("{0}{1}", typeof(T).Name, postfix))
             { }
         }
-
-
-
-
-
     }
 }
