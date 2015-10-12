@@ -8,7 +8,7 @@ namespace Clutch
     public class FluentClient
     {
         private readonly string _rootUrl;
-        private Entity _path = new Entity();
+        private readonly Entity _path = new Entity();
 
         public FluentClient(string rootUrl)
         {
@@ -17,23 +17,21 @@ namespace Clutch
 
         public async Task<T> Get<T>(object id)
         {
-            _path.Chain(new PluralEntity<T>()).Chain(new Entity(id));
-
-            //new PluralEntity<T>().Chain(new Entity(id)).Chain(_path);
+            _path.Chain(new PluralEntity<T>()).Chain(id);
 
             return await new HttpClientWrapper(_rootUrl).GetAsync<T>(_path.ToString());
         }
 
         public FluentClient Find<T>(object id)
         {
-            _path.Chain(new PluralEntity<T>()).Chain(new Entity(id));
+            _path.Chain(new PluralEntity<T>()).Chain(id);
 
             return this;
         }
 
         private class Entity
         {
-            private object _chainLink = null;
+            private Entity _chainLink = null;
             private readonly object _value = null;
 
             public Entity(object val = null)
@@ -56,11 +54,20 @@ namespace Clutch
                 return string.Format("{0}/{1}", _value, _chainLink);
             }
 
-            public Entity Chain(Entity link)
+            public Entity Chain(object link)
             {
-                _chainLink = link;
+                var wrapped = link as Entity ?? new Entity(link);
 
-                return link;
+                if (_chainLink != null)
+                {
+                    _chainLink.Chain(wrapped);
+                }
+                else
+                {
+                    _chainLink = wrapped;
+                }
+
+                return this;
             }
         }
 

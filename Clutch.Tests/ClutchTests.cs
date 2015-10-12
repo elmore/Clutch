@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NUnit.Framework;
 
 namespace Clutch.Tests
@@ -24,8 +22,7 @@ namespace Clutch.Tests
         [Test]
         public void RetreivesSubModel()
         {
-            Room room = new FluentClient("http://local.property.erm-api.com/v1/").Find<User>(1).Get<Room>("h123123").Result;
-
+            var room = new FluentClient("http://local.property.erm-api.com/v1/").Find<User>(1).Get<Room>("h123123");
         }
     }
 
