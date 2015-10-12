@@ -99,7 +99,7 @@ namespace Clutch
         /// <summary>
         /// component that can chain together to build up requests to nested resources
         /// </summary>
-        public class CurriedRequest : IFluentRequest
+        internal class CurriedRequest : IFluentRequest
         {
             private readonly HttpClientWrapper _client;
             private readonly Entity _path;
