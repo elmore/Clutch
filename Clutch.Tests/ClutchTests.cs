@@ -10,7 +10,7 @@ namespace Clutch.Tests
         [Test]
         public void RetrievesModelFromRoot()
         {
-            Room room = new FluentClient("http://local.property.erm-api.com/v1/").Get<Room>(1).Result.Entity;
+            Room room = new FluentClient<Error>("http://local.property.erm-api.com/v1/").Get<Room>(1).Result.Entity;
 
             Assert.IsNotNull(room);
 
@@ -22,7 +22,7 @@ namespace Clutch.Tests
         [Test]
         public void RetreivesSubModel()
         {
-            var room = new FluentClient("http://local.property.erm-api.com/v1/").Find<User>(1).Get<Room>("h123123");
+            var room = new FluentClient<Error>("http://local.property.erm-api.com/v1/").Find<User>(1).Get<Room>("h123123");
         }
 
         [Test]
@@ -43,7 +43,7 @@ namespace Clutch.Tests
                 Ip = "",
             };
 
-            FluentResponse<User> result = new FluentClient("http://local.property.erm-api.com/v1/").Post<User>(model).Result;
+            FluentResponse<User, Error> result = new FluentClient<Error>("http://local.property.erm-api.com/v1/").Post<User>(model).Result;
 
             Assert.IsNotNull(result);
 
@@ -55,7 +55,7 @@ namespace Clutch.Tests
         [Test]
         public void CanUseClientForDifferentCalls()
         {
-            var client = new FluentClient("http://local.property.erm-api.com/v1/");
+            var client = new FluentClient<Error>("http://local.property.erm-api.com/v1/");
 
             Room room1 = client.Get<Room>(1).Result.Entity;
 
@@ -69,10 +69,10 @@ namespace Clutch.Tests
         [Test]
         public void HandlesNetworkFailure()
         {
-            var client = new FluentClient("http://local.property.erm-api.com/v1/");
+            var client = new FluentClient<Error>("http://local.property.erm-api.com/v1/");
 
             // server set up to fail on this code
-            FluentResponse<User> room = client.Get<User>("forceerror").Result;
+            FluentResponse<User, Error> room = client.Get<User>("forceerror").Result;
 
             Assert.IsNotNull(room);
             Assert.IsNull(room.Entity);

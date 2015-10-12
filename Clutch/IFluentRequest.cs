@@ -2,10 +2,10 @@ using System.Threading.Tasks;
 
 namespace Clutch
 {
-    public interface IFluentRequest
+    public interface IFluentRequest<TError>
     {
-        IFluentRequest Find<T>(object id);
-        Task<FluentResponse<T>> Get<T>(object id);
-        Task<FluentResponse<T>> Post<T>(T model);
+        IFluentRequest<TError> Find<T>(object id);
+        Task<FluentResponse<T, TError>> Get<T>(object id);
+        Task<FluentResponse<T, TError>> Post<T>(T model);
     }
 }

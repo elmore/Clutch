@@ -22,7 +22,7 @@ namespace Clutch
     /// entry point. implements the interface but is just proxying to the CurriedRequest
     /// and handling persistent state
     /// </summary>
-    public class FluentClient : IFluentRequest
+    public class FluentClient<TError> : IFluentRequest<TError>
     {
         private readonly HttpClientWrapper _client;
 
@@ -31,17 +31,17 @@ namespace Clutch
             _client = new HttpClientWrapper(rootUrl);
         }
 
-        public IFluentRequest Find<T>(object id)
+        public IFluentRequest<TError> Find<T>(object id)
         {
             return new CurriedRequest(_client).Find<T>(id);
         }
 
-        public async Task<FluentResponse<T>> Get<T>(object id)
+        public async Task<FluentResponse<T, TError>> Get<T>(object id)
         {
             return await new CurriedRequest(_client).Get<T>(id);
         }
 
-        public async Task<FluentResponse<T>> Post<T>(T model)
+        public async Task<FluentResponse<T, TError>> Post<T>(T model)
         {
             return await new CurriedRequest(_client).Post<T>(model);
         }
@@ -59,7 +59,7 @@ namespace Clutch
                 _rootUrl = rootUrl;
             }
 
-            public async Task<FluentResponse<T>> PostAsJsonAsync<T>(string url, object model)
+            public async Task<FluentResponse<T, TError>> PostAsJsonAsync<T>(string url, object model)
             {
                 using (HttpResponseMessage response = await CallRemote(c => c.PostAsJsonAsync(url, model)))
                 {
@@ -67,7 +67,7 @@ namespace Clutch
                 }
             }
 
-            public async Task<FluentResponse<T>> GetAsync<T>(string url)
+            public async Task<FluentResponse<T, TError>> GetAsync<T>(string url)
             {
                 using (HttpResponseMessage response = await CallRemote(c => c.GetAsync(url)))
                 {
@@ -83,13 +83,17 @@ namespace Clutch
                 }
             }
 
-            private async Task<FluentResponse<T>> BuildResponse<T>(HttpResponseMessage response)
+            private async Task<FluentResponse<T, TError>> BuildResponse<T>(HttpResponseMessage response)
             {
-                var result = new FluentResponse<T>();
+                var result = new FluentResponse<T, TError>();
 
                 if (response.IsSuccessStatusCode)
                 {
                     result.Entity = await response.Content.ReadAsAsync<T>();
+                }
+                else
+                {
+                    
                 }
 
                 // add in message
@@ -116,7 +120,7 @@ namespace Clutch
         /// <summary>
         /// component that can chain together to build up requests to nested resources
         /// </summary>
-        internal class CurriedRequest : IFluentRequest
+        internal class CurriedRequest : IFluentRequest<TError>
         {
             private readonly HttpClientWrapper _client;
             private readonly Entity _path;
@@ -127,21 +131,21 @@ namespace Clutch
                 _path = new Entity();
             }
 
-            public IFluentRequest Find<T>(object id)
+            public IFluentRequest<TError> Find<T>(object id)
             {
                 _path.Chain(new PluralEntity<T>()).Chain(id);
 
                 return this;
             }
 
-            public async Task<FluentResponse<T>> Get<T>(object id)
+            public async Task<FluentResponse<T, TError>> Get<T>(object id)
             {
                 _path.Chain(new PluralEntity<T>()).Chain(id);
 
                 return await _client.GetAsync<T>(_path.ToString());
             }
 
-            public async Task<FluentResponse<T>> Post<T>(T model)
+            public async Task<FluentResponse<T, TError>> Post<T>(T model)
             {
                 _path.Chain(new PluralEntity<T>());
 
