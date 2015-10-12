@@ -10,7 +10,7 @@ namespace Clutch.Tests
         [Test]
         public void RetrievesModelFromRoot()
         {
-            Room room = new FluentClient("http://local.property.erm-api.com/v1/").Get<Room>(1).Result;
+            Room room = new FluentClient("http://local.property.erm-api.com/v1/").Get<Room>(1).Result.Entity;
 
             Assert.IsNotNull(room);
 
@@ -55,9 +55,9 @@ namespace Clutch.Tests
         {
             var client = new FluentClient("http://local.property.erm-api.com/v1/");
 
-            Room room1 = client.Get<Room>(1).Result;
+            Room room1 = client.Get<Room>(1).Result.Entity;
 
-            Room room2 = client.Get<Room>(1).Result;
+            Room room2 = client.Get<Room>(1).Result.Entity;
 
             Assert.IsNotNull(room1);
 
@@ -67,14 +67,23 @@ namespace Clutch.Tests
         [Test]
         public void HandlesNetworkFailure()
         {
-            var client = new FluentClient("http://local.property.erm-api.com/");
+            var client = new FluentClient("http://local.property.erm-api.com/v1/");
 
-            User room = client.Find<Room>(1).Find<Room>(1).Find<Room>(1).Find<Room>(1).Get<User>(12).Result;
+            // server set up to fail on this code
+            FluentResponse<User> room = client.Get<User>("forceerror").Result;
 
-            Assert.IsNull(room);
+            Assert.IsNotNull(room);
+            Assert.IsNull(room.Entity);
+            Assert.AreEqual(401, (int)room.StatusCode);
         }
 
 
+    }
+
+    public class Error
+    {
+        public int Status { get; set; }
+        public string Message { get; set; }
     }
 
     public class User

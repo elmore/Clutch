@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FluentClient.cs" />
+    <Compile Include="FluentResponse.cs" />
     <Compile Include="IFluentRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -36,7 +36,7 @@ namespace Clutch
             return new CurriedRequest(_client).Find<T>(id);
         }
 
-        public async Task<T> Get<T>(object id)
+        public async Task<FluentResponse<T>> Get<T>(object id)
         {
             return await new CurriedRequest(_client).Get<T>(id);
         }
@@ -73,17 +73,23 @@ namespace Clutch
                 }
             }
 
-            public async Task<T> GetAsync<T>(string url)
+            public async Task<FluentResponse<T>> GetAsync<T>(string url)
             {
                 using (var client = GetClient())
                 using (HttpResponseMessage response = await client.GetAsync(url))
                 {
+                    var result = new FluentResponse<T>();
+
                     if (response.IsSuccessStatusCode)
                     {
-                        return await response.Content.ReadAsAsync<T>();
+                        result.Entity = await response.Content.ReadAsAsync<T>();
                     }
 
-                    return default(T);
+                    // add in message
+
+                    result.StatusCode = response.StatusCode;
+
+                    return result;
                 }
             }
 
@@ -122,7 +128,7 @@ namespace Clutch
                 return this;
             }
 
-            public async Task<T> Get<T>(object id)
+            public async Task<FluentResponse<T>> Get<T>(object id)
             {
                 _path.Chain(new PluralEntity<T>()).Chain(id);
 
