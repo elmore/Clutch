@@ -61,8 +61,7 @@ namespace Clutch
 
             public async Task<FluentResponse<T>> PostAsJsonAsync<T>(string url, object model)
             {
-                using (var client = BuildClient())
-                using (HttpResponseMessage response = await client.PostAsJsonAsync(url, model))
+                using (HttpResponseMessage response = await CallRemote(c => c.PostAsJsonAsync(url, model)))
                 {
                     return await BuildResponse<T>(response);
                 }
@@ -70,10 +69,17 @@ namespace Clutch
 
             public async Task<FluentResponse<T>> GetAsync<T>(string url)
             {
-                using (var client = BuildClient())
-                using (HttpResponseMessage response = await client.GetAsync(url))
+                using (HttpResponseMessage response = await CallRemote(c => c.GetAsync(url)))
                 {
                     return await BuildResponse<T>(response);
+                }
+            }
+
+            private async Task<HttpResponseMessage> CallRemote(Func<HttpClient, Task<HttpResponseMessage>> httpAction)
+            {
+                using (var client = BuildClient())
+                {
+                    return await httpAction(client);
                 }
             }
 
