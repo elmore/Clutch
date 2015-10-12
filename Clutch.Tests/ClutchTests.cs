@@ -43,11 +43,13 @@ namespace Clutch.Tests
                 Ip = "",
             };
 
-            User result = new FluentClient("http://local.property.erm-api.com/v1/").Post<User>(model).Result;
+            FluentResponse<User> result = new FluentClient("http://local.property.erm-api.com/v1/").Post<User>(model).Result;
 
             Assert.IsNotNull(result);
 
-            Assert.IsNotNullOrEmpty(result.Id);
+            Assert.IsNotNull(result.Entity);
+
+            Assert.IsNotNullOrEmpty(result.Entity.Id);
         }
 
         [Test]

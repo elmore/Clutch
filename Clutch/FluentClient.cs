@@ -41,7 +41,7 @@ namespace Clutch
             return await new CurriedRequest(_client).Get<T>(id);
         }
 
-        public async Task<T> Post<T>(T model)
+        public async Task<FluentResponse<T>> Post<T>(T model)
         {
             return await new CurriedRequest(_client).Post<T>(model);
         }
@@ -59,41 +59,41 @@ namespace Clutch
                 _rootUrl = rootUrl;
             }
 
-            public async Task<T> PostAsJsonAsync<T>(string url, object model)
+            public async Task<FluentResponse<T>> PostAsJsonAsync<T>(string url, object model)
             {
-                using (var client = GetClient())
+                using (var client = BuildClient())
                 using (HttpResponseMessage response = await client.PostAsJsonAsync(url, model))
                 {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        return await response.Content.ReadAsAsync<T>();
-                    }
-
-                    return default(T);
+                    return await BuildResponse<T>(response);
                 }
             }
 
             public async Task<FluentResponse<T>> GetAsync<T>(string url)
             {
-                using (var client = GetClient())
+                using (var client = BuildClient())
                 using (HttpResponseMessage response = await client.GetAsync(url))
                 {
-                    var result = new FluentResponse<T>();
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        result.Entity = await response.Content.ReadAsAsync<T>();
-                    }
-
-                    // add in message
-
-                    result.StatusCode = response.StatusCode;
-
-                    return result;
+                    return await BuildResponse<T>(response);
                 }
             }
 
-            private HttpClient GetClient()
+            private async Task<FluentResponse<T>> BuildResponse<T>(HttpResponseMessage response)
+            {
+                var result = new FluentResponse<T>();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Entity = await response.Content.ReadAsAsync<T>();
+                }
+
+                // add in message
+
+                result.StatusCode = response.StatusCode;
+
+                return result;
+            }
+
+            private HttpClient BuildClient()
             {
                 var client = new HttpClient();
 
@@ -135,7 +135,7 @@ namespace Clutch
                 return await _client.GetAsync<T>(_path.ToString());
             }
 
-            public async Task<T> Post<T>(T model)
+            public async Task<FluentResponse<T>> Post<T>(T model)
             {
                 _path.Chain(new PluralEntity<T>());
 
