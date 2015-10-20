@@ -10,13 +10,13 @@ namespace Clutch.Tests
         [Test]
         public void RetrievesModelFromRoot()
         {
-            Room room = new FluentClient<Error>("http://local.property.erm-api.com/v1/").Get<Room>(1).Result.Entity;
+            Room room = new FluentClient<Error>("http://local.property.erm-api.com/v1/").Get<Room>("H151006172656205").Result.Entity;
 
             Assert.IsNotNull(room);
 
-            Assert.AreEqual("h234234872359283", room.Id);
+            Assert.AreEqual("H151006172656205", room.Id);
 
-            Assert.AreEqual("London", room.City);
+            Assert.AreEqual("my city", room.City);
         }
 
         [Test]
@@ -57,9 +57,9 @@ namespace Clutch.Tests
         {
             var client = new FluentClient<Error>("http://local.property.erm-api.com/v1/");
 
-            Room room1 = client.Get<Room>(1).Result.Entity;
+            Room room1 = client.Get<Room>("H151006172656205").Result.Entity;
 
-            Room room2 = client.Get<Room>(1).Result.Entity;
+            Room room2 = client.Get<Room>("H151006172656205").Result.Entity;
 
             Assert.IsNotNull(room1);
 
